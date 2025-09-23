@@ -10,12 +10,17 @@ use App\Models\AtividadeProcedimento;
 class Atividade extends Model
 {
     protected $table = 'atividades';
-    protected $fillable = ['paciente_id', 'tipo_atividade_id', 'data', 'descricao'];
+    protected $fillable = ['paciente_id', 'data', 'hora', 'status' ,'descricao', 'valor'];
 
     // public function tipo()
     // {
     //     return $this->belongsTo(TipoAtividade::class, 'tipo_atividade_id');
     // } por enquanto está com enum
+
+    public function dentista()
+    {
+        return $this->belongsTo(Dentista::class);
+    }
 
     public function consulta()
     {

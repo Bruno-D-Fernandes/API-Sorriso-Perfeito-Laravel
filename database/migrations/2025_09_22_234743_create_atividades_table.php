@@ -15,9 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('dentista_id')->references('id')->on('dentistas')->onDelete('cascade');
             $table->foreignId('paciente_id')->references('id')->on('pacientes')->onDelete('cascade');
-            $table->foreignId('tipo_atividade_id')->references('id')->on('tipo_atividades')->onDelete('cascade');
+            // $table->foreignId('tipo_atividade_id')->references('id')->on('tipo_atividades')->onDelete('cascade');
             $table->date('data');
             $table->time('hora');
+            $
             $table->enum('status', ['agendada', 'concluida', 'cancelada', 'atrasada'])->default('agendada');
             $table->text('descricao')->nullable();
             $table->decimal('valor', 8, 2)->nullable();

@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pacientes', function (Blueprint $table) {
+        Schema::create('ferramentas', function (Blueprint $table) {
             $table->id();
             $table->string('nome');
-            $table->date('data_nascimento');
-            $table->string('telefone')->nullable(); // aqui pode ter um link para o whatsapp futuramente
-            $table->text('Imagem')->nullable();
+            $table->enum('estado',['Esterilizado','Contaminado', 'Limpo', 'Quebrado']);
+            $table->text('imagem')->nullable();
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pacientes');
+        Schema::dropIfExists('ferramentas');
     }
 };
