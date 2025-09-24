@@ -2,6 +2,9 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use PHPUnit\Metadata\Group;
+use App\Http\Controllers\DentistaController;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,6 +17,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::prefix('dentista')->group(function () {
+
+    Route::post('/registro', [DentistaController::class, 'store']);
+    Route::post('/login', [DentistaController::class, 'login']);
+    Route::put('/update/{id}', [DentistaController::class, 'update']);
+
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/me', [DentistaController::class, 'perfil']);
+        Route::post('/logout', [DentistaController::class, 'logout']);
+        Route::delete('/destroy/{id}', [DentistaController::class, 'destroy']);
+    });
 });

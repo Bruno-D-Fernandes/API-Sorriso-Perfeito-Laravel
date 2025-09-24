@@ -18,7 +18,6 @@ return new class extends Migration
             // $table->foreignId('tipo_atividade_id')->references('id')->on('tipo_atividades')->onDelete('cascade');
             $table->date('data');
             $table->time('hora');
-            $
             $table->enum('status', ['agendada', 'concluida', 'cancelada', 'atrasada'])->default('agendada');
             $table->text('descricao')->nullable();
             $table->decimal('valor', 8, 2)->nullable();
