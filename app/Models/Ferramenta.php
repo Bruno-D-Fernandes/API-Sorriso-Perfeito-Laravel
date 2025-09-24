@@ -8,4 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class Ferramenta extends Model
 {
     use HasFactory;
+
+    protected $table = "ferramentas";
+
+    protected $fillable = [
+        'nome',
+        'estado',
+        'imagem',
+    ];
+
 }

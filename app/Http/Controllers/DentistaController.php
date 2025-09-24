@@ -16,9 +16,7 @@ class DentistaController extends Controller
      */
     public function index()
     {
-        // Retorna uma coleção de todos os dentistas.
-        // Isso pode ser útil para um painel administrativo, por exemplo.
-        $dentistas = Dentista::all();
+        $dentistas = Dentista::all(); // Provavelmente n˜ão vou usar isso 
         return response()->json($dentistas);
     }
 
@@ -35,14 +33,12 @@ class DentistaController extends Controller
 
             $dentista = Dentista::where('email', $credentials['email'])->first();
 
-            // Lança uma exceção de validação se as credenciais forem inválidas
             if (!$dentista || !Hash::check($credentials['senha'], $dentista->senha)) {
                 throw ValidationException::withMessages([
                     'email' => ['As credenciais fornecidas estão incorretas.'],
                 ]);
             }
 
-            // Cria o token de acesso
             $token = $dentista->createToken('auth-token')->plainTextToken;
 
             return response()->json([
@@ -86,12 +82,7 @@ class DentistaController extends Controller
      */
     public function show(Dentista $dentista)
     {
-        // O Laravel já injeta o modelo 'Dentista' através do 'Route Model Binding'.
-        // Isso significa que a variável $dentista já é uma instância do modelo Dentista
-        // correspondente ao ID passado na URL. Não é necessário fazer Dentista::find($dentista->id);
-        
-        // Protege a rota: Garante que apenas o dentista logado possa ver seu próprio perfil
-        if (Auth::guard('sanctum')->id() !== $dentista->id) {
+        if (Auth::guard('sanctum')->id() !== $dentista->id) { 
             return response()->json(['error' => 'Acesso não autorizado.'], 403);
         }
 

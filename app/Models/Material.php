@@ -17,4 +17,5 @@ class Material extends Model
         'quantidade',
         'imagem',
     ];
+
 }

@@ -22,6 +22,10 @@ class Atividade extends Model
         return $this->belongsTo(Dentista::class);
     }
 
+    public function paciente(){
+        return $this->belongsTo(Paciente::class); // Verificar isso
+    }
+
     public function consulta()
     {
         return $this->hasOne(AtividadeConsulta::class, 'id');
@@ -36,4 +40,5 @@ class Atividade extends Model
     {
         return $this->hasOne(AtividadeProcedimento::class, 'id');
     }
+
 }
