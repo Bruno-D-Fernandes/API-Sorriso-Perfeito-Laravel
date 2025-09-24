@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class DentistaController extends Controller
 {
@@ -15,25 +16,47 @@ class DentistaController extends Controller
      */
     public function index()
     {
-        //
+        // Retorna uma coleção de todos os dentistas.
+        // Isso pode ser útil para um painel administrativo, por exemplo.
+        $dentistas = Dentista::all();
+        return response()->json($dentistas);
     }
 
-    // public function login(Request $resquest){ // Finalizar parte do login.
-    //     $credentials = $resquest->validate([
-    //         'email' => 'required|string|',
-    //         'senha' => 'required|min:3',
-    //     ])
+    /**
+     * Handles user login and token generation.
+     */
+    public function login(Request $request)
+    {
+        try {
+            $credentials = $request->validate([
+                'email' => 'required|email',
+                'senha' => 'required',
+            ]);
 
-    //     if(Auth::attempt($credentials)){
-    //         @
-    //     }
+            $dentista = Dentista::where('email', $credentials['email'])->first();
 
-    // }
+            // Lança uma exceção de validação se as credenciais forem inválidas
+            if (!$dentista || !Hash::check($credentials['senha'], $dentista->senha)) {
+                throw ValidationException::withMessages([
+                    'email' => ['As credenciais fornecidas estão incorretas.'],
+                ]);
+            }
+
+            // Cria o token de acesso
+            $token = $dentista->createToken('auth-token')->plainTextToken;
+
+            return response()->json([
+                'token' => $token,
+                'dentista' => $dentista // Opcional: Retorna o objeto dentista junto com o token
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+    }
 
     /**
      * Store a newly created resource in storage.
      */
-
     public function store(Request $request) // Cadastro do dentista
     {
         try {
@@ -44,27 +67,35 @@ class DentistaController extends Controller
                 'data_nascimento' => 'required|date',
             ]);
 
+            // Hashing da senha
             $validatedData['senha'] = Hash::make($validatedData['senha']);
+
             $dentista = Dentista::create($validatedData);
 
             return response()->json($dentista, 201);
+        } catch (ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {
             Log::error('Erro ao criar dentista: ' . $e->getMessage());
-            return response()->json(['error' => 'Não foi possível criar o dentista.'], 500);
+            return response()->json(['error' => 'Não foi possível criar o dentista. Tente novamente mais tarde.'], 500);
         }
     }
+
     /**
      * Display the specified resource.
      */
     public function show(Dentista $dentista)
     {
-        // try{ // Terminar depois para o dentista ver o perfil
-        // Dentista::query()
+        // O Laravel já injeta o modelo 'Dentista' através do 'Route Model Binding'.
+        // Isso significa que a variável $dentista já é uma instância do modelo Dentista
+        // correspondente ao ID passado na URL. Não é necessário fazer Dentista::find($dentista->id);
+        
+        // Protege a rota: Garante que apenas o dentista logado possa ver seu próprio perfil
+        if (Auth::guard('sanctum')->id() !== $dentista->id) {
+            return response()->json(['error' => 'Acesso não autorizado.'], 403);
+        }
 
-
-        // } catch (\Exception $e){
-
-        // }
+        return response()->json($dentista);
     }
 
     /**
@@ -72,7 +103,27 @@ class DentistaController extends Controller
      */
     public function update(Request $request, Dentista $dentista)
     {
-        //
+        // Protege a rota
+        if (Auth::guard('sanctum')->id() !== $dentista->id) {
+            return response()->json(['error' => 'Acesso não autorizado.'], 403);
+        }
+
+        try {
+            $validatedData = $request->validate([
+                'nome' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:dentistas,email,' . $dentista->id,
+                'data_nascimento' => 'required|date',
+            ]);
+
+            $dentista->update($validatedData);
+
+            return response()->json($dentista);
+        } catch (ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            Log::error('Erro ao atualizar dentista: ' . $e->getMessage());
+            return response()->json(['error' => 'Não foi possível atualizar o dentista.'], 500);
+        }
     }
 
     /**
@@ -80,6 +131,17 @@ class DentistaController extends Controller
      */
     public function destroy(Dentista $dentista)
     {
-        //
+        // Protege a rota
+        if (Auth::guard('sanctum')->id() !== $dentista->id) {
+            return response()->json(['error' => 'Acesso não autorizado.'], 403);
+        }
+        
+        try {
+            $dentista->delete();
+            return response()->json(['message' => 'Dentista excluído com sucesso.'], 200);
+        } catch (\Exception $e) {
+            Log::error('Erro ao deletar dentista: ' . $e->getMessage());
+            return response()->json(['error' => 'Não foi possível excluir o dentista.'], 500);
+        }
     }
 }

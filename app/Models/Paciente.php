@@ -21,13 +21,13 @@ class Paciente extends Authenticatable
         'imagem',
     ];
 
-    public function atividades()
+    public function atividade()
     {
         return $this->hasMany(Atividade::class);
     }
 
-    public function dentistas()
+    public function dentista()
     {
-        return $this->belongsToMany(Dentista::class, 'atividades', 'paciente_id', 'dentista_id');
+        return $this->belongsTo(Dentista::class);
     }
 }

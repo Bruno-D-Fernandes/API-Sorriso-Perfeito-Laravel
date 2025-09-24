@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('pacientes', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('dentista_id')->references('id')->on('dentistas')->onDelete('cascade');
             $table->string('nome');
             $table->date('data_nascimento');
             $table->string('telefone')->nullable(); // aqui pode ter um link para o whatsapp futuramente

@@ -4,27 +4,37 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable; // Importar a trait
+use Laravel\Sanctum\HasApiTokens; // Importar a trait
 
-class Dentista extends Model
+class Dentista extends Authenticatable
 {
-    use HasFactory;
+    use HasApiTokens, HasFactory;
 
     protected $table = 'dentistas';
 
     protected $fillable = [
         'nome',
         'email',
-        'senha',
         'data_nascimento',
     ];
 
-    public function atividades()
-    {
-        return $this->hasMany(Atividade::class);
-    }
+    protected $hidden = [
+        'senha',
+    ];
 
     public function getAuthPassword()
     {
         return $this->senha;
+    }
+
+    public function atividade()
+    {
+        return $this->hasMany(Atividade::class);
+    }
+
+
+    public function pacinete(){
+        return $this->hasMany(Paciente::class);
     }
 }
