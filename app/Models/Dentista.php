@@ -35,7 +35,7 @@ class Dentista extends Authenticatable
     }
 
 
-    public function pacinete(){
+    public function pacintes(){
         return $this->hasMany(Paciente::class);
     }
 }

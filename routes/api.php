@@ -21,12 +21,11 @@ Route::prefix('dentista')->group(function () {
 
     Route::post('/registro', [DentistaController::class, 'store']);
     Route::post('/login', [DentistaController::class, 'login']);
-    Route::put('/update/{id}', [DentistaController::class, 'update']);
-
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/me', [DentistaController::class, 'me']);
         Route::post('/logout', [DentistaController::class, 'logout']);
         Route::delete('/destroy/{id}', [DentistaController::class, 'destroy']);
+        Route::put('/update/{id}', [DentistaController::class, 'update']);
     });
 });

@@ -115,49 +115,57 @@ class DentistaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Dentista $dentista)
+    public function update(Request $request)
     {
-        // Protege a rota
-        if (Auth::guard('sanctum')->id() !== $dentista->id) {
-            return response()->json(['error' => 'Acesso não autorizado.'], 403);
+        $dentista = Auth::user();
+
+        if (!$dentista instanceof Dentista) {
+            return response()->json(['message' => 'Acesso não autorizado ou usuário inválido.'], 403);
         }
 
         try {
             $validatedData = $request->validate([
-                'nome' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:dentistas,email,' . $dentista->id,
-                'data_nascimento' => 'required|date',
+                'nome' => 'sometimes|required|string|max:255',
+                'email' => 'sometimes|required|string|email|max:255',
+                'data_nascimento' => 'sometimes|required|date_format:Y-m-d',
             ]);
-
+            
             $dentista->update($validatedData);
 
             return response()->json([
+                'message' => 'Perfil atualizado com sucesso!',
                 'dentista' => $dentista
             ]);
+
         } catch (ValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 422);
+            return response()->json(['message' => 'Dados inválidos.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            Log::error('Erro ao atualizar dentista: ' . $e->getMessage());
-            return response()->json(['error' => 'Não foi possível atualizar o dentista.'], 500);
+            Log::error('Erro ao atualizar dentista ID ' . $dentista->id . ': ' . $e->getMessage());
+
+            return response()->json(['message' => 'Ocorreu um erro interno ao tentar atualizar o perfil.'], 500);
         }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Dentista $dentista)
+    public function destroy(Request $request) 
     {
-        // Protege a rota
-        if (Auth::guard('sanctum')->id() !== $dentista->id) {
-            return response()->json(['error' => 'Acesso não autorizado.'], 403);
+        $dentista = Auth::user();
+
+        if (!$dentista instanceof Dentista) {
+            return response()->json(['message' => 'Nenhum usuário autenticado encontrado.'], 401);
         }
 
         try {
             $dentista->delete();
-            return response()->json(['message' => 'Dentista excluído com sucesso.'], 200);
+            $dentista->tokens()->delete();
+
+            return response()->json(['message' => 'Perfil excluído com sucesso.'], 200);
+
         } catch (\Exception $e) {
-            Log::error('Erro ao deletar dentista: ' . $e->getMessage());
-            return response()->json(['error' => 'Não foi possível excluir o dentista.'], 500);
+            Log::error('Erro ao deletar dentista ID ' . $dentista->id . ': ' . $e->getMessage());
+            return response()->json(['message' => 'Ocorreu um erro interno ao tentar excluir o perfil.'], 500);
         }
     }
 }
