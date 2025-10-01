@@ -43,12 +43,34 @@ class DentistaController extends Controller
 
             return response()->json([
                 'token' => $token,
-                'dentista' => $dentista // Opcional: Retorna o objeto dentista junto com o token
+                'dentista' => $dentista // Retorna o objeto dentista junto com o token
             ]);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         }
     }
+
+    /**
+     * Logout
+     */
+
+    public function logout(Request $request)
+    {
+        try {
+            // Revoga apenas o token usado nessa requisição
+            $request->user()->currentAccessToken()->delete();
+
+            return response()->json([
+                'message' => 'Logout realizado com sucesso.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Erro ao realizar logout.',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 
     /**
      * Store a newly created resource in storage.
@@ -63,29 +85,30 @@ class DentistaController extends Controller
                 'data_nascimento' => 'required|date',
             ]);
 
-            // Hashing da senha
             $validatedData['senha'] = Hash::make($validatedData['senha']);
 
             $dentista = Dentista::create($validatedData);
+            $token = $dentista->createToken('auth-token')->plainTextToken;
 
-            return response()->json($dentista, 201);
+
+            return response()->json([
+                'token' => $token,
+                'dentista' => $dentista
+            ]);
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            Log::error('Erro ao criar dentista: ' . $e->getMessage());
-            return response()->json(['error' => 'Não foi possível criar o dentista. Tente novamente mais tarde.'], 500);
+            return response()->json(['error' => 'Não foi possível criar o dentista. Tente novamente mais tarde.', 'log' => $e->getMessage()], 500);
         }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Dentista $dentista)
+    public function me(Request $request)
     {
-        if (Auth::guard('sanctum')->id() !== $dentista->id) { 
-            return response()->json(['error' => 'Acesso não autorizado.'], 403);
-        }
-
+        $user = $request->user();
+        $dentista = Dentista::findOrFail($user->id);
         return response()->json($dentista);
     }
 
@@ -108,7 +131,9 @@ class DentistaController extends Controller
 
             $dentista->update($validatedData);
 
-            return response()->json($dentista);
+            return response()->json([
+                'dentista' => $dentista
+            ]);
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {
@@ -126,7 +151,7 @@ class DentistaController extends Controller
         if (Auth::guard('sanctum')->id() !== $dentista->id) {
             return response()->json(['error' => 'Acesso não autorizado.'], 403);
         }
-        
+
         try {
             $dentista->delete();
             return response()->json(['message' => 'Dentista excluído com sucesso.'], 200);

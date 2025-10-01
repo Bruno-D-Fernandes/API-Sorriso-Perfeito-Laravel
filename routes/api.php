@@ -25,7 +25,7 @@ Route::prefix('dentista')->group(function () {
 
 
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/me', [DentistaController::class, 'perfil']);
+        Route::post('/me', [DentistaController::class, 'me']);
         Route::post('/logout', [DentistaController::class, 'logout']);
         Route::delete('/destroy/{id}', [DentistaController::class, 'destroy']);
     });

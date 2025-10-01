@@ -16,6 +16,7 @@ class Dentista extends Authenticatable
     protected $fillable = [
         'nome',
         'email',
+        'senha',
         'data_nascimento',
     ];
 
